@@ -1,0 +1,46 @@
+{
+  "name": "better-bem",
+  "version": "0.1.15",
+  "description": "Better BEM classname generation with CSS Modules support",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebublish": "babel src --out-dir lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuudJacobs/better-bem.git"
+  },
+  "keywords": [
+    "bem",
+    "css",
+    "modules",
+    "classnames"
+  ],
+  "author": "Luud Jacobs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LuudJacobs/better-bem/issues"
+  },
+  "homepage": "https://github.com/LuudJacobs/better-bem#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "typechecker": "^4.7.0"
+  }
+}
