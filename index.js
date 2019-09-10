@@ -1,2 +1,2 @@
-const { betterBEM } = require ('./lib/betterBEM');
-module.exports = betterBEM;
+const { BEM } = require ('./lib/betterBEM');
+module.exports = BEM;

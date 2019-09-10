@@ -1,73 +1,62 @@
 import { isString, isPlainObject } from 'typechecker';
 
-/**
- * betterBEM factory function.
- * Creates function which returns classname string
- *
- * @param {string} blockClassName   base classname for block element
- * @param {Object} cssModuleStyle   CSS modules style object
- *
- * @since 1.0.0
- * @return {function} bemify function
- */
-const betterBEM = (blockClassName = null, cssModuleStyle = {}) => {
+const objectKeysToClassNamesReducer = (acc, classNames) => {
+    if (isPlainObject(classNames)) {
+        // return object keys for which value is thruthy
+        const enabledClassNames = Object.keys(classNames)
+        .filter((key) => classNames[key]);
 
-    return (elementClassName = null, modifiers = [], extraClassNames = []) => {
-        /** blockClassName is valid when its a non empty string. */
-        const blockClassNameIsValid = isString(blockClassName) && blockClassName;
-        /** elementClassName is valid when its a non empty string. */
-        const elementClassNameIsValid = isString(elementClassName) && elementClassName;
-
-        const baseClassName = blockClassNameIsValid && elementClassNameIsValid ?
-            `${blockClassName}__${elementClassName}` :
-                blockClassNameIsValid ? blockClassName :
-                    elementClassNameIsValid ? elementClassName : null;
-
-        if (typeof modifiers === 'string') {
-            modifiers = modifiers.split(/\s+/g);
-        }
-
-        const modifierClassNames = modifiers
-            // first get valid modifiers
-            .reduce((acc, modifier) => {
-                if (isPlainObject(modifier)) {
-                    // if modifier is an Object check, add modifier classnames
-                    // from keys for which value is thruthy
-                    const modifiers = Object.keys(modifier)
-                        .filter((modifierName) => modifier[modifierName]); // filter only thruthy values
-                    return [ ...acc, ...modifiers ];
-                } else if (isString(modifier) && modifier) {
-                    // if modifier is a non empty string, add it to modifiers accumulator
-                    return [ ...acc, modifier ];
-                }
-                // else just return current modifiers accumulator
-                return acc;
-            }, []);
-
-        const bemClassNames = isString(baseClassName) ?
-            modifierClassNames.map((modifier) => `${baseClassName}--${modifier}`) :
-                modifierClassNames.slice();
-
-        if (isPlainObject(cssModuleStyle) && !isEmptyObject(cssModuleStyle)) {
-
-        }
+        return [ ...acc, ...enabledClassNames ];
     }
+    return [ ...acc, classNames ];
 };
 
-export { betterBEM };
+const generateClassNamesArray = (input = []) => (
+    [input].flat()
+        .reduce(objectKeysToClassNamesReducer, [])
+        .reduce((acc, className) => (
+            isString(className) ? [ ...acc, ...className.split(/\s+/g) ] : acc
+        ), [])
+);
 
-function cnFactory(localStyles = {}) {
-    const styles = { ...globalStyles, ...localStyles };
-    return function(classNames = [], modifiers = [], extraClassNames = []) {
-        classNames = [classNames].flat();
-        modifiers = [modifiers].flat();
-        extraClassNames = [extraClassNames].flat();
+const combineClassNames = (baseClassNames, extraClassNames, concat = '__') => (
+    baseClassNames.reduce((acc, baseCn = '') => ([
+        ...acc,
+        ...extraClassNames.map((extraCn = '') => `${baseCn}${baseCn && extraCn ? concat : ''}${extraCn}`)
+    ]), [])
+);
 
-        return classNames
-            .concat(modifiers.map(modifier => classNames.map(baseClassName => `${baseClassName}--${modifier}`)).flat())
-            .map(cn => styles[cn])
-            .concat(extraClassNames)
-            .filter(cn => cn)
-            .join(' ');
+/**
+ * BEM classname generator.
+ * Creates function which returns a chainable BEM object.
+ *
+ * @param {string|array}    baseClassName    base classname for block element
+ * @param {Object}          cssModuleStyle   CSS modules style object
+ *
+ * @return {Object} BEM object
+ */
+const BEM = (baseClassName = [], cssModuleStyle = {}) => {
+    const baseClassNames = generateClassNamesArray(baseClassName);
+
+    return {
+        get cn() {
+            if (isPlainObject(cssModuleStyle) && !isEmptyObject(cssModuleStyle)) {
+                const filteredClassNames = baseClassNames.filter((className) => cssModuleStyle[className]);
+                return filteredClassNames.join(' ');
+            }
+            baseClassNames.join(' ');
+        },
+        el: (elementClassName) => {
+            const elementClassNames = generateClassNamesArray(elementClassName);
+            const allClassNames = combineClassNames(baseClassNames, elementClassNames);
+            return BEM(allClassNames);
+        },
+        mod: (modifiers) => {
+            const modifierClassNames = generateClassNamesArray(modifiers);
+            const allClassNames = combineClassNames(baseClassNames, modifierClassNames, '--');
+            return BEM(allClassNames);
+        }
     };
 };
+
+export { BEM };

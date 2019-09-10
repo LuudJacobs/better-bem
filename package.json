@@ -1,11 +1,12 @@
 {
   "name": "better-bem",
-  "version": "0.1.15",
+  "version": "0.8.0",
   "description": "Better BEM classname generation with CSS Modules support",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prebublish": "babel src --out-dir lib"
+    "build": "babel src --out-dir lib",
+    "prepublish": "babel src --out-dir lib"
   },
   "repository": {
     "type": "git",
@@ -41,6 +42,7 @@
     ]
   },
   "dependencies": {
+    "mocha": "^6.2.0",
     "typechecker": "^4.7.0"
   }
 }
