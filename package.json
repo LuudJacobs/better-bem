@@ -1,7 +1,7 @@
 {
   "name": "better-bem",
   "version": "0.8.0",
-  "description": "Better BEM classname generation with CSS Modules support",
+  "description": "Better BEM css classname generation with CSS Modules support",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

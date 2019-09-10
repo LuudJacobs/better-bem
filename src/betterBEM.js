@@ -1,4 +1,4 @@
-import { isString, isPlainObject } from 'typechecker';
+import { isString, isPlainObject, isEmptyObject } from 'typechecker';
 
 const objectKeysToClassNamesReducer = (acc, classNames) => {
     if (isPlainObject(classNames)) {
@@ -19,6 +19,7 @@ const generateClassNamesArray = (input = []) => (
         ), [])
 );
 
+// not perfect yet
 const combineClassNames = (baseClassNames, extraClassNames, concat = '__') => (
     baseClassNames.reduce((acc, baseCn = '') => ([
         ...acc,
@@ -41,7 +42,9 @@ const BEM = (baseClassName = [], cssModuleStyle = {}) => {
     return {
         get cn() {
             if (isPlainObject(cssModuleStyle) && !isEmptyObject(cssModuleStyle)) {
-                const filteredClassNames = baseClassNames.filter((className) => cssModuleStyle[className]);
+                const filteredClassNames = baseClassNames
+                    .map((className) => cssModuleStyle[className])
+                    .filter((moduleClassName) => moduleClassName);
                 return filteredClassNames.join(' ');
             }
             baseClassNames.join(' ');
@@ -49,12 +52,16 @@ const BEM = (baseClassName = [], cssModuleStyle = {}) => {
         el: (elementClassName) => {
             const elementClassNames = generateClassNamesArray(elementClassName);
             const allClassNames = combineClassNames(baseClassNames, elementClassNames);
-            return BEM(allClassNames);
+            return BEM(allClassNames, cssModuleStyle);
         },
         mod: (modifiers) => {
+            console.log({modifiers});
             const modifierClassNames = generateClassNamesArray(modifiers);
+            console.log({modifierClassNames});
+            console.log({baseClassName});
             const allClassNames = combineClassNames(baseClassNames, modifierClassNames, '--');
-            return BEM(allClassNames);
+            console.log({allClassNames});
+            return BEM(allClassNames, cssModuleStyle);
         }
     };
 };
