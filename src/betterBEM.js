@@ -1,73 +1,87 @@
-import { isString, isPlainObject } from 'typechecker';
+import { isString, isPlainObject, isEmptyObject } from 'typechecker';
+
+const objectKeysToClassNamesReducer = (acc, classNames) => {
+    if (isPlainObject(classNames)) {
+        // return object keys for which value is thruthy
+        const enabledClassNames = Object.keys(classNames).filter((key) => classNames[key]);
+
+        return [ ...acc, ...enabledClassNames ];
+    }
+    return [ ...acc, classNames ];
+};
+
+const generateClassNamesArray = (input = []) => (
+    [input].flat()
+        .reduce(objectKeysToClassNamesReducer, [])
+        .reduce((acc, className) => (
+            isString(className) ? [
+                ...acc,
+                ...className.split(/\s+/g).filter((str) => str)
+            ] : acc
+        ), [])
+);
+
+// not perfect yet
+const combineClassNames = (baseClassNames, extraClassNames, concat = '__') => {
+    if (!baseClassNames.length) {
+        return extraClassNames;
+    }
+    if (!extraClassNames.length) {
+        return baseClassNames;
+    }
+    return baseClassNames.reduce((acc, baseCn = '') => ([
+        ...acc,
+        ...extraClassNames.map((extraCn = '') => `${baseCn}${baseCn && extraCn ? concat : ''}${extraCn}`)
+    ]), [])
+};
 
 /**
- * betterBEM factory function.
- * Creates function which returns classname string
+ * BEM classname generator.
+ * Creates function which returns a chainable BEM object.
  *
- * @param {string} blockClassName   base classname for block element
- * @param {Object} cssModuleStyle   CSS modules style object
+ * @param {string|array}    baseClassName       base classname for block element
+ * @param {Object}          classNameMap        CSS modules style object
+ * @param {Boolean}         strictClassNameMap  if true drops classNames which don't appear in classNameMap
  *
- * @since 1.0.0
- * @return {function} bemify function
+ * @return {Object} BEM object
  */
-const betterBEM = (blockClassName = null, cssModuleStyle = {}) => {
+const BEM = (baseClassName = [], classNameMap = {}, strictClassNameMap = true) => {
+    const baseClassNames = generateClassNamesArray(baseClassName);
 
-    return (elementClassName = null, modifiers = [], extraClassNames = []) => {
-        /** blockClassName is valid when its a non empty string. */
-        const blockClassNameIsValid = isString(blockClassName) && blockClassName;
-        /** elementClassName is valid when its a non empty string. */
-        const elementClassNameIsValid = isString(elementClassName) && elementClassName;
-
-        const baseClassName = blockClassNameIsValid && elementClassNameIsValid ?
-            `${blockClassName}__${elementClassName}` :
-                blockClassNameIsValid ? blockClassName :
-                    elementClassNameIsValid ? elementClassName : null;
-
-        if (typeof modifiers === 'string') {
-            modifiers = modifiers.split(/\s+/g);
-        }
-
-        const modifierClassNames = modifiers
-            // first get valid modifiers
-            .reduce((acc, modifier) => {
-                if (isPlainObject(modifier)) {
-                    // if modifier is an Object check, add modifier classnames
-                    // from keys for which value is thruthy
-                    const modifiers = Object.keys(modifier)
-                        .filter((modifierName) => modifier[modifierName]); // filter only thruthy values
-                    return [ ...acc, ...modifiers ];
-                } else if (isString(modifier) && modifier) {
-                    // if modifier is a non empty string, add it to modifiers accumulator
-                    return [ ...acc, modifier ];
+    return {
+        get cn() {
+            if (isPlainObject(classNameMap) && !isEmptyObject(classNameMap)) {
+                let filteredClassNames;
+                switch (strictClassNameMap) {
+                    case false: {
+                        filteredClassNames = baseClassNames
+                            .map((className) => classNameMap[className] || className);
+                        break;
+                    }
+                    // case true:
+                    default: {
+                        filteredClassNames = baseClassNames
+                            .map((className) => classNameMap[className])
+                            .filter((moduleClassName) => moduleClassName);
+                    }
                 }
-                // else just return current modifiers accumulator
-                return acc;
-            }, []);
+                return filteredClassNames.join(' ');
+            }
 
-        const bemClassNames = isString(baseClassName) ?
-            modifierClassNames.map((modifier) => `${baseClassName}--${modifier}`) :
-                modifierClassNames.slice();
-
-        if (isPlainObject(cssModuleStyle) && !isEmptyObject(cssModuleStyle)) {
-
+            return baseClassNames.join(' ');
+        },
+        el: (elementClassName = []) => {
+            const elementClassNames = generateClassNamesArray(elementClassName);
+            const allClassNames = combineClassNames(baseClassNames, elementClassNames);
+            return BEM(allClassNames, classNameMap, strictClassNameMap);
+        },
+        mod: (modifiers = []) => {
+            const modifierClassNames = generateClassNamesArray(modifiers);
+            const allModifiedClassNames = combineClassNames(baseClassNames, modifierClassNames, '--');
+            const allClassNames = [ ...baseClassNames, ...allModifiedClassNames ];
+            return BEM(allClassNames, classNameMap, strictClassNameMap);
         }
-    }
-};
-
-export { betterBEM };
-
-function cnFactory(localStyles = {}) {
-    const styles = { ...globalStyles, ...localStyles };
-    return function(classNames = [], modifiers = [], extraClassNames = []) {
-        classNames = [classNames].flat();
-        modifiers = [modifiers].flat();
-        extraClassNames = [extraClassNames].flat();
-
-        return classNames
-            .concat(modifiers.map(modifier => classNames.map(baseClassName => `${baseClassName}--${modifier}`)).flat())
-            .map(cn => styles[cn])
-            .concat(extraClassNames)
-            .filter(cn => cn)
-            .join(' ');
     };
 };
+
+export { BEM };
