@@ -4,9 +4,8 @@
   "description": "Better BEM css classname generation with CSS Modules support",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src --out-dir lib",
-    "prepublish": "babel src --out-dir lib"
+    "test": "mocha",
+    "prepare": "babel src --out-dir lib"
   },
   "repository": {
     "type": "git",
@@ -27,7 +26,8 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0"
+    "babel-preset-env": "^1.7.0",
+    "mocha": "^6.2.0"
   },
   "babel": {
     "presets": [
@@ -42,7 +42,6 @@
     ]
   },
   "dependencies": {
-    "mocha": "^6.2.0",
     "typechecker": "^4.7.0"
   }
 }
