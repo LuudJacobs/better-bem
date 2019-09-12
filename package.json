@@ -1,7 +1,7 @@
 {
   "name": "better-bem",
-  "version": "0.9.1",
-  "description": "Better BEM css classname generation with CSS Modules support",
+  "version": "1.0.0",
+  "description": "Chainable BEM className generator with CSS Modules support",
   "main": "index.js",
   "scripts": {
     "test": "mocha",

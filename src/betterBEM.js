@@ -1,18 +1,26 @@
 import { isString, isPlainObject, isEmptyObject } from 'typechecker';
 
-const objectKeysToClassNamesReducer = (acc, classNames) => {
-    if (isPlainObject(classNames)) {
-        // return object keys for which value is thruthy
-        const enabledClassNames = Object.keys(classNames).filter((key) => classNames[key]);
-
-        return [ ...acc, ...enabledClassNames ];
-    }
-    return [ ...acc, classNames ];
-};
-
-const generateClassNamesArray = (input = []) => (
+const generateClassNamesArray = (input = [], useKeyValuePairs = false) => (
     [input].flat()
-        .reduce(objectKeysToClassNamesReducer, [])
+        .reduce((acc, classNames) => {
+            if (isPlainObject(classNames)) {
+                // only use object keys for which value is thruthy
+                let enabledClassNames = Object.keys(classNames).filter((key) => classNames[key]);
+
+                // for modifiers support `--{prop}-{value}`
+                if (useKeyValuePairs) {
+                    enabledClassNames = enabledClassNames.map((key) => {
+                        if (isString(classNames[key])) {
+                            return `${key}-${classNames[key]}`;
+                        }
+                        return key;
+                    });
+                }
+
+                return [ ...acc, ...enabledClassNames ];
+            }
+            return [ ...acc, classNames ];
+        }, [])
         .reduce((acc, className) => (
             isString(className) ? [
                 ...acc,
@@ -39,14 +47,14 @@ const combineClassNames = (baseClassNames, extraClassNames, concat = '__') => {
  * BEM classname generator.
  * Creates function which returns a chainable BEM object.
  *
- * @param {string|array}    baseClassName       base classname for block element
+ * @param {string|array}    classNames          base classname for current BEM class
  * @param {Object}          classNameMap        CSS modules style object
  * @param {Boolean}         strictClassNameMap  if true drops classNames which don't appear in classNameMap
  *
  * @return {Object} BEM object
  */
-const BEM = (baseClassName = [], classNameMap = {}, strictClassNameMap = true) => {
-    const baseClassNames = generateClassNamesArray(baseClassName);
+const BEM = (classNames = [], classNameMap = {}, strictClassNameMap = true) => {
+    const baseClassNames = generateClassNamesArray(classNames);
 
     return {
         get cn() {
@@ -76,7 +84,7 @@ const BEM = (baseClassName = [], classNameMap = {}, strictClassNameMap = true) =
             return BEM(allClassNames, classNameMap, strictClassNameMap);
         },
         mod: (modifiers = []) => {
-            const modifierClassNames = generateClassNamesArray(modifiers);
+            const modifierClassNames = generateClassNamesArray(modifiers, true);
             const allModifiedClassNames = combineClassNames(baseClassNames, modifierClassNames, '--');
             const allClassNames = [ ...baseClassNames, ...allModifiedClassNames ];
             return BEM(allClassNames, classNameMap, strictClassNameMap);
