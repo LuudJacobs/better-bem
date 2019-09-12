@@ -66,6 +66,8 @@ describe('BEM', function() {
                 assert.strictEqual(_b.cn, 'block block--mod_1 block--mod_2');
                 const _e = BEM('block').el('element').mod({ 'modifier': true });
                 assert.strictEqual(_e.cn, 'block__element block__element--modifier');
+                const _v = BEM('block').mod(['mod_1', { 'mod_2': false, 'mod_3': 'value' }]);
+                assert.strictEqual(_v.cn, 'block block--mod_1 block--mod_3-value');
             });
         });
     })
