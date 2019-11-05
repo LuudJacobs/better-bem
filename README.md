@@ -40,11 +40,12 @@ BEM( classNames [, classNameMap [, strictClassNameMap ] ] )
 
 | classNames | `.cn` output |
 | :--- | :--- |
-| `"classname"` | `"classname"` |
-| `" classname whitespace-separated "` | `"classname whitepsace-separated"` |
-| `{ classname: true, otherClassname: false, anotherClassname: "truthy value" }` | `"classname anotherClassname"` |
-| `["classname whitespace-separated", { "another and-another": true }]` | `"classname whitespace-separated another and-another"` |
-| **`mod()` only:** `{ "property": "value" }` | `"property-value"` |
+| `"foobar"` | `"foobar"` |
+| `["foobar", "lorem ipsum"]` | `"foobar lorem ipsum"` |
+| `" foo bar "` | `"foo bar"` |
+| `{ foo: false, bar: "truthy value" }` | `"bar"` |
+| `["foo bar", { lorem: true }, "ipsum"]` | `"foo bar lorem ipsum"` |
+| **`mod()` only:** `{ property: "value" }` | `"property-value"` |
 
 ### classNameMap
 
@@ -62,8 +63,8 @@ When classNameMap is not empty and strictClassNameMap is `true` all inputted cla
 
 | classNames | classNameMap | strictClassNameMap | `.cn` output |
 | :--- | :--- | :--- | :--- |
-| `"first second"` | `{ first: "op-first' }` | `true` | `"op-first"` |
-| `"first second"` | `{ first: "op-first' }` | `false` | `"op-first second"` |
+| `"foo bar"` | `{ foo: "output-foo" }` | `true` | `"output-foo"` |
+| `"foo bar"` | `{ foo: "output-foo" }` | `false` | `"output-foo bar"` |
 
 ## Chaining
 
