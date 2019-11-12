@@ -58,25 +58,26 @@ const BEM = (classNames = [], classNameMap = {}, strictClassNameMap = true) => {
 
     return {
         get cn() {
+            let outputtedClassNames = baseClassNames;
             if (isPlainObject(classNameMap) && !isEmptyObject(classNameMap)) {
-                let filteredClassNames;
                 switch (strictClassNameMap) {
                     case false: {
-                        filteredClassNames = baseClassNames
+                        outputtedClassNames = baseClassNames
                             .map((className) => classNameMap[className] || className);
                         break;
                     }
                     // case true:
                     default: {
-                        filteredClassNames = baseClassNames
+                        outputtedClassNames = baseClassNames
                             .map((className) => classNameMap[className])
                             .filter((moduleClassName) => moduleClassName);
                     }
                 }
-                return filteredClassNames.join(' ');
             }
 
-            return baseClassNames.join(' ');
+            return outputtedClassNames
+                .filter((className, index, allClassNames) =>  allClassNames.indexOf(className) === index)
+                .join(' ');
         },
         el: (elementClassName = []) => {
             const elementClassNames = generateClassNamesArray(elementClassName);
