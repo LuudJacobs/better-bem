@@ -4,8 +4,7 @@
   "description": "Chainable BEM className generator with CSS Modules support",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "prepare": "babel src --out-dir lib"
+    "test": "babel ./index.js --out-dir tests && mocha"
   },
   "repository": {
     "type": "git",
