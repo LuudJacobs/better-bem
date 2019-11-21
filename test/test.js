@@ -1,6 +1,5 @@
 const assert = require('chai').assert;
-const BEM = require('../');
-
+const BEM = require('../tests/index').default;
 
 describe('BEM', function() {
     it('Should return an object with an function `el()`, function `mod()` and string `cn`', function() {
