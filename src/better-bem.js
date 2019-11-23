@@ -1,3 +1,9 @@
+/*
+ * better-BEM
+ * (c) Luud Jacobs
+ * @license ISC
+ */
+
 import { isString, isPlainObject, isEmptyObject } from 'typechecker';
 
 const generateClassNamesArray = (input = [], useKeyValuePairs = false) => (
