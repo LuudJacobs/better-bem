@@ -47,13 +47,13 @@ BEM( classNames [, classNameMap [, strictClassNameMap ] ] )
 | `["foo bar", { lorem: true }, "ipsum"]` | `"foo bar lorem ipsum"` |
 | **`mod()` only:** `{ property: "value" }` | `"property-value"` |
 
-### classNameMap
+#### classNameMap
 
 **default value:** `{}`
 
 **accepts:** _Object with input className to output className mapping_
 
-### strictClassNameMap
+#### strictClassNameMap
 
 **default value:** `true`
 
