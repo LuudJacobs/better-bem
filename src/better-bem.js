@@ -7,7 +7,10 @@
 import { isString, isPlainObject, isEmptyObject } from 'typechecker';
 
 const generateClassNamesArray = (input = [], useKeyValuePairs = false) => (
-    [input].flat()
+    [input]
+        .reduce((acc, classNames) => {
+            return acc.concat(classNames);
+        }, [])
         .reduce((acc, classNames) => {
             if (isPlainObject(classNames)) {
                 // only use object keys for which value is thruthy
