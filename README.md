@@ -15,7 +15,7 @@ A quick Google search for a package which handles dynamic className generation a
 
 ```bash
 # install
-npm i better-bem
+npm i better-bem@legacy
 ```
 
 ```javascript
