@@ -1,6 +1,6 @@
 {
   "name": "better-bem",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Chainable BEM classname generator with CSS Modules support",
   "main": "dist/better-bem.js",
   "module": "src/better-bem.js",
