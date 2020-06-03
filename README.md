@@ -162,8 +162,9 @@ console.log(blueTitle.cn);
 
 const emphasizedText = blueTitle.el('emp').mod('bold');
 console.log(emphasizedText.cn);
-// "header__text__emp header__text__emp--color-blue header__text__emp--bold
-//    header__title__emp header__title__emp--color-blue header__title__emp--bold"
+// "header__text__emp header__title__emp header__text__emp--color-blue
+//   header__title__emp--color-blue header__text__emp--bold header__title__emp--bold"
+
 // note that modifiers are inherited by child elements
 ```
 
@@ -197,7 +198,7 @@ console.log(title.cn); // "header__title header__title--blue"
 // note that the 'blue' modifier is still inherited
 
 const nonStrictHeader = bem('header', 'blue', styles, false);
-console.log(header.cn); // "header header--blue"
+console.log(nonStrictHeader.cn); // "header header--blue"
 // now strict is set to `false`, all classnames will be outputted
 ```
 
