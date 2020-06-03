@@ -4,23 +4,42 @@
  * @license ISC
  */
 
-import { isString, isPlainObject, isEmptyObject } from 'typechecker';
+import { isString, isPlainObject, isEmptyObject, isNumber } from 'typechecker';
+import { flatten } from "array-flatten";
 
-const generateClassNamesArray = (input = [], useKeyValuePairs = false) => (
-    [input]
+const CLASSNAME_REGEX = /^(-[_a-zA-Z]|[_a-zA-Z][-_a-zA-Z0-9])[-_a-zA-Z0-9]*$/;
+const GLUE_CHILD = '__';
+const GLUE_MOD = '--';
+const GLUE_PROP = '-';
+
+/**
+ * cleanClassNamesArray
+ *
+ * @param {string|array|Object} input               classnames which should be cleaned
+ * @param {Boolean}             useKeyValuePairs    if true handle prop-value mod classnames
+ *
+ * @return {array} clean array clean classnames
+ */
+const cleanClassNamesArray = (input = [], useKeyValuePairs = false, keyValueGlue) => (
+    // make sure input is an array
+    flatten([input])
+        // reduce into new array with classname strings
         .reduce((acc, classNames) => {
-            return acc.concat(classNames);
-        }, [])
-        .reduce((acc, classNames) => {
+            // filter for strings only
+            if (isString(classNames)) {
+                return [ ...acc, classNames ];
+            }
+
             if (isPlainObject(classNames)) {
-                // only use object keys for which value is thruthy
-                let enabledClassNames = Object.keys(classNames).filter((key) => classNames[key]);
+                // only use object keys for which value is not false, null or undefined
+                let enabledClassNames = Object.keys(classNames).filter((key) => ![false, null, undefined].includes(classNames[key]));
 
                 // for modifiers support `--{prop}-{value}`
                 if (useKeyValuePairs) {
                     enabledClassNames = enabledClassNames.map((key) => {
-                        if (isString(classNames[key])) {
-                            return `${key}-${classNames[key]}`;
+                        const value = classNames[key];
+                        if (isString(value) || isNumber(value)) {
+                            return `${key}${keyValueGlue}${value}`;
                         }
                         return key;
                     });
@@ -28,78 +47,123 @@ const generateClassNamesArray = (input = [], useKeyValuePairs = false) => (
 
                 return [ ...acc, ...enabledClassNames ];
             }
-            return [ ...acc, classNames ];
+
+            // ignore when not a string or object
+            return acc;
         }, [])
-        .reduce((acc, className) => (
-            isString(className) ? [
-                ...acc,
-                ...className.split(/\s+/g).filter((str) => str)
-            ] : acc
-        ), [])
+        // turn whitespace splitted strings into arrays
+        .reduce((acc, className) => ([...acc, ...className.split(/\s+/g)]), [])
+        // filter for unique classnames only
+        .filter((cn, index, allCn) => allCn.indexOf(cn) === index)
 );
 
-// not perfect yet
-const combineClassNames = (baseClassNames, extraClassNames, concat = '__') => {
-    if (!baseClassNames.length) {
-        return extraClassNames;
-    }
-    if (!extraClassNames.length) {
-        return baseClassNames;
-    }
-    return baseClassNames.reduce((acc, baseCn = '') => ([
-        ...acc,
-        ...extraClassNames.map((extraCn = '') => `${baseCn}${baseCn && extraCn ? concat : ''}${extraCn}`)
-    ]), [])
+/**
+ * combineClassNames
+ *
+ * @param {array}           baseClassNames      base classnames
+ * @param {array}           extraClassNames     extra classnames to be added
+ * @param {string}          glue                string to be used to glue the 2 together
+ *
+ * @return {array} array with combined classnames
+ */
+const combineClassNames = (baseClassNames = [], extraClassNames = [], glue = '') => {
+    return flatten(extraClassNames.map((extraCn) => {
+        if (!baseClassNames.length) {
+            return extraCn;
+        }
+
+        return baseClassNames.map((baseCn) => `${baseCn}${baseCn && extraCn ? glue : ''}${extraCn}`);
+    }));
 };
 
 /**
- * BEM classname generator.
- * Creates function which returns a chainable BEM object.
+ * createElementClassNames
+ * create an array with element classnames based on baseclassnames
  *
- * @param {string|array}    classNames          base classname for current BEM class
- * @param {Object}          classNameMap        CSS modules style object
- * @param {Boolean}         strictClassNameMap  if true drops classNames which don't appear in classNameMap
+ * @param {array}           baseClassNames      base classnames
+ * @param {array}           elementClassNames   element classnames
+ * @param {string}          glue                string used to concat classnames
  *
- * @return {Object} BEM object
+ * @return {array} array with element classnames
  */
-const BEM = (classNames = [], classNameMap = {}, strictClassNameMap = true) => {
-    const baseClassNames = generateClassNamesArray(classNames);
+const createElementClassNames = (baseClassNames = [], elementClassNames = [], glue = GLUE_CHILD) => {
+    baseClassNames = cleanClassNamesArray(baseClassNames);
+    elementClassNames = cleanClassNamesArray(elementClassNames);
 
+    if (!elementClassNames.length) {
+        return [];
+    }
+
+    return combineClassNames(baseClassNames, elementClassNames, glue);
+};
+
+/**
+ * addModifiedClassNames
+ *
+ * @param {array}           elementClassNames   element classnames to be modified
+ * @param {array}           modifierClassNames  modifier classnames
+ * @param {string}          glue                string used to concat classnames
+ *
+ * @return {array} array with element classnames and modified classnames
+ */
+const addModifiedClassNames = (elementClassNames = [], modifierClassNames = [], modGlue = GLUE_MOD, propGlue = GLUE_PROP) => {
+    elementClassNames = cleanClassNamesArray(elementClassNames);
+    modifierClassNames = cleanClassNamesArray(modifierClassNames, true, propGlue);
+
+    if (!elementClassNames.length) {
+        return [];
+    }
+
+    const modifiedClassNames = combineClassNames(elementClassNames, modifierClassNames, modGlue);
+
+    return [ ...elementClassNames, ...modifiedClassNames ];
+};
+
+/**
+ * bem classname generator.
+ * Creates function which returns a chainable bem object.
+ *
+ * @param {string|array|Object} classNames      base classname(s)
+ * @param {string|array|Object} mods            modifier classname(s)
+ * @param {Object}              classNameMap    CSS modules style object
+ * @param {Boolean}             strict          if true don't output classnames which don't appear in classNameMap
+ * @param {Object}              glue            glue used for classname concatenation
+ *
+ * @return {Object} bem object
+ */
+const bem = (classNames = [], mods = [], classNameMap = {}, strict = true, glue = {}) => {
     return {
         get cn() {
-            let outputtedClassNames = baseClassNames;
+            let outputtedClassNames = addModifiedClassNames(classNames, mods, glue.mod, glue.prop);
+            outputtedClassNames = outputtedClassNames.filter((cn) => CLASSNAME_REGEX.test(cn));
+
             if (isPlainObject(classNameMap) && !isEmptyObject(classNameMap)) {
-                switch (strictClassNameMap) {
+                switch (strict) {
                     case false: {
-                        outputtedClassNames = baseClassNames
+                        outputtedClassNames = outputtedClassNames
                             .map((className) => classNameMap[className] || className);
                         break;
                     }
                     // case true:
                     default: {
-                        outputtedClassNames = baseClassNames
+                        outputtedClassNames = outputtedClassNames
                             .map((className) => classNameMap[className])
-                            .filter((moduleClassName) => moduleClassName);
+                            .filter((moduleClassName) => moduleClassName !== undefined);
                     }
                 }
             }
 
-            return outputtedClassNames
-                .filter((className, index, allClassNames) =>  allClassNames.indexOf(className) === index)
-                .join(' ');
+            return outputtedClassNames.join(' ');
         },
-        el: (elementClassName = []) => {
-            const elementClassNames = generateClassNamesArray(elementClassName);
-            const allClassNames = combineClassNames(baseClassNames, elementClassNames);
-            return BEM(allClassNames, classNameMap, strictClassNameMap);
+        el: (elements = []) => {
+            const elementClassNames = createElementClassNames(classNames, elements, glue.el);
+            return bem(elementClassNames, mods, classNameMap, strict, glue);
         },
         mod: (modifiers = []) => {
-            const modifierClassNames = generateClassNamesArray(modifiers, true);
-            const allModifiedClassNames = combineClassNames(baseClassNames, modifierClassNames, '--');
-            const allClassNames = [ ...baseClassNames, ...allModifiedClassNames ];
-            return BEM(allClassNames, classNameMap, strictClassNameMap);
+            const passedMods = flatten([mods]).concat(modifiers);
+            return bem(classNames, passedMods, classNameMap, strict, glue);
         }
     };
 };
 
-export default BEM;
+export default bem;
