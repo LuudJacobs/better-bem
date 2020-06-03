@@ -1,6 +1,6 @@
 {
   "name": "better-bem",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "Chainable BEM classname generator with CSS Modules support",
   "main": "dist/better-bem.js",
   "module": "src/better-bem.js",
@@ -11,7 +11,7 @@
   "scripts": {
     "test": "echo \"lol 🤣\" && exit 1",
     "build": "babel src --out-dir dist",
-    "prepare": "npm run dist"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -31,9 +31,9 @@
   },
   "homepage": "https://github.com/LuudJacobs/better-bem#readme",
   "devDependencies": {
-    "@babel/core": "^7.7.4",
-    "@babel/preset-env": "^7.7.4",
-    "@babel/cli": "^7.7.4"
+    "@babel/cli": "^7.10.1",
+    "@babel/core": "^7.10.2",
+    "@babel/preset-env": "^7.10.2"
   },
   "babel": {
     "presets": [
