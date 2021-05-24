@@ -5,7 +5,23 @@
  */
 
 import { isString, isPlainObject, isEmptyObject, isNumber } from 'typechecker';
-import { flatten } from "array-flatten";
+import { flatten } from 'array-flatten';
+
+type ClassName = string | Record<string, any>;
+type ClassNames = ClassName | ClassName[];
+type CSSModulesObject = Record<string, any>;
+
+type BEM = {
+  el: (elements: ClassNames) => BEM,
+  mod: (modifiers: ClassNames) => BEM,
+  cn: string
+}
+
+type Glue = {
+  mod?: string;
+  el?: string;
+  prop?: string;
+}
 
 const CLASSNAME_REGEX = /^(-[_a-zA-Z]|[_a-zA-Z][-_a-zA-Z0-9])[-_a-zA-Z0-9]*$/;
 const GLUE_CHILD = '__';
@@ -15,22 +31,22 @@ const GLUE_PROP = '-';
 /**
  * cleanClassNamesArray
  *
- * @param {string|array|Object} input               classnames which should be cleaned
- * @param {Boolean}             useKeyValuePairs    if true handle prop-value mod classnames
+ * @param input               classnames which should be cleaned
+ * @param useKeyValuePairs    if true handle prop-value mod classnames
  *
- * @return {array} clean array clean classnames
+ * @return clean array clean classnames
  */
-const cleanClassNamesArray = (input = [], useKeyValuePairs = false, keyValueGlue) => (
+const cleanClassNamesArray = (input: ClassNames = [], useKeyValuePairs = false, keyValueGlue = ''): string[] => (
     // make sure input is an array
     flatten([input])
         // reduce into new array with classname strings
-        .reduce((acc, classNames) => {
+        .reduce<string[]>((acc, classNames) => {
             // filter for strings only
-            if (isString(classNames)) {
+            if (isString(classNames) && typeof classNames == 'string') {
                 return [ ...acc, classNames ];
             }
 
-            if (isPlainObject(classNames)) {
+            if (isPlainObject(classNames) && typeof classNames == 'object') {
                 // only use object keys for which value is not false, null or undefined
                 let enabledClassNames = Object.keys(classNames).filter((key) => ![false, null, undefined].includes(classNames[key]));
 
@@ -52,7 +68,7 @@ const cleanClassNamesArray = (input = [], useKeyValuePairs = false, keyValueGlue
             return acc;
         }, [])
         // turn whitespace splitted strings into arrays
-        .reduce((acc, className) => ([...acc, ...className.split(/\s+/g)]), [])
+        .reduce<string[]>((acc, className) => ([...acc, ...className.split(/\s+/g)]), [])
         // filter for unique classnames only
         .filter((cn, index, allCn) => allCn.indexOf(cn) === index)
 );
@@ -60,13 +76,13 @@ const cleanClassNamesArray = (input = [], useKeyValuePairs = false, keyValueGlue
 /**
  * combineClassNames
  *
- * @param {array}           baseClassNames      base classnames
- * @param {array}           extraClassNames     extra classnames to be added
- * @param {string}          glue                string to be used to glue the 2 together
+ * @param baseClassNames      base classnames
+ * @param extraClassNames     extra classnames to be added
+ * @param glue                string to be used to glue the 2 together
  *
- * @return {array} array with combined classnames
+ * @return array with combined classnames
  */
-const combineClassNames = (baseClassNames = [], extraClassNames = [], glue = '') => {
+const combineClassNames = (baseClassNames: string[] = [], extraClassNames: string[] = [], glue = ''): string[] => {
     return flatten(extraClassNames.map((extraCn) => {
         if (!baseClassNames.length) {
             return extraCn;
@@ -78,60 +94,72 @@ const combineClassNames = (baseClassNames = [], extraClassNames = [], glue = '')
 
 /**
  * createElementClassNames
- * create an array with element classnames based on baseclassnames
+ * create an array with element classnames based on baseClassNames
  *
- * @param {array}           baseClassNames      base classnames
- * @param {array}           elementClassNames   element classnames
- * @param {string}          glue                string used to concat classnames
+ * @param baseClassNames      base classnames
+ * @param elementClassNames   element classnames
+ * @param glue                string used to concat classnames
  *
- * @return {array} array with element classnames
+ * @return array with element classnames
  */
-const createElementClassNames = (baseClassNames = [], elementClassNames = [], glue = GLUE_CHILD) => {
-    baseClassNames = cleanClassNamesArray(baseClassNames);
-    elementClassNames = cleanClassNamesArray(elementClassNames);
+const createElementClassNames = (baseClassNames: ClassNames = [], elementClassNames: ClassNames = [], glue = GLUE_CHILD): string[] => {
+    const cleanBaseClassNames = cleanClassNamesArray(baseClassNames);
+    const cleanElementClassNames = cleanClassNamesArray(elementClassNames);
 
     if (!elementClassNames.length) {
         return [];
     }
 
-    return combineClassNames(baseClassNames, elementClassNames, glue);
+    return combineClassNames(cleanBaseClassNames, cleanElementClassNames, glue);
 };
 
 /**
  * addModifiedClassNames
  *
- * @param {array}           elementClassNames   element classnames to be modified
- * @param {array}           modifierClassNames  modifier classnames
- * @param {string}          glue                string used to concat classnames
+ * @param elementClassNames   element classnames to be modified
+ * @param modifierClassNames  modifier classnames
+ * @param modGlue             string used to concat modifiers
+ * @param propGlue            string used to concat classnames
  *
- * @return {array} array with element classnames and modified classnames
+ * @return array with element classnames and modified classnames
  */
-const addModifiedClassNames = (elementClassNames = [], modifierClassNames = [], modGlue = GLUE_MOD, propGlue = GLUE_PROP) => {
-    elementClassNames = cleanClassNamesArray(elementClassNames);
-    modifierClassNames = cleanClassNamesArray(modifierClassNames, true, propGlue);
+const addModifiedClassNames = (
+  elementClassNames: ClassNames = [],
+  modifierClassNames: ClassNames = [],
+  modGlue = GLUE_MOD,
+  propGlue = GLUE_PROP
+): string[] => {
+    const cleanElementClassNames = cleanClassNamesArray(elementClassNames);
+    const cleanModifierClassNames = cleanClassNamesArray(modifierClassNames, true, propGlue);
 
     if (!elementClassNames.length) {
         return [];
     }
 
-    const modifiedClassNames = combineClassNames(elementClassNames, modifierClassNames, modGlue);
+    const modifiedClassNames = combineClassNames(cleanElementClassNames, cleanModifierClassNames, modGlue);
 
-    return [ ...elementClassNames, ...modifiedClassNames ];
+    return [ ...cleanElementClassNames, ...modifiedClassNames ];
 };
 
 /**
  * bem classname generator.
  * Creates function which returns a chainable bem object.
  *
- * @param {string|array|Object} classNames      base classname(s)
- * @param {string|array|Object} mods            modifier classname(s)
- * @param {Object}              classNameMap    CSS modules style object
- * @param {Boolean}             strict          if true don't output classnames which don't appear in classNameMap
- * @param {Object}              glue            glue used for classname concatenation
+ * @param classNames      base classname(s)
+ * @param mods            modifier classname(s)
+ * @param classNameMap    CSS modules style object
+ * @param strict          if true don't output classnames which don't appear in classNameMap
+ * @param glue            glue used for classname concatenation
  *
- * @return {Object} bem object
+ * @return bem object
  */
-const bem = (classNames = [], mods = [], classNameMap = {}, strict = true, glue = {}) => {
+const bem = (
+  classNames: ClassNames = [],
+  mods: ClassNames = [],
+  classNameMap: CSSModulesObject = {},
+  strict = true,
+  glue: Glue = {}
+): BEM => {
     return {
         get cn() {
             let outputtedClassNames = addModifiedClassNames(classNames, mods, glue.mod, glue.prop);
