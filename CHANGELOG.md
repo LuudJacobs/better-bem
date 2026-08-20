@@ -6,9 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-- Update Babel toolchain to v8 and pin the preset-env `modules` option to `commonjs`
-- Update dependencies to resolve known security advisories
+## [2.0.4] - 2026-08-20
+
+### Added
 - Ship `CHANGELOG.md` in the published package
+- Link to the changelog from the readme
+
+### Changed
+- Update the Babel toolchain to v8 and pin the preset-env `modules` option to `commonjs`, keeping the `dist` build CommonJS
+
+### Security
+- Update dependencies to resolve known advisories in `semver`, `@babel/traverse`, `minimatch` and `brace-expansion`
+- Drop `picomatch` and `lodash` from the dependency tree
 
 ## [2.0.3] - 2023-02-09
 
