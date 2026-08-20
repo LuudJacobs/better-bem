@@ -31,9 +31,9 @@
   },
   "homepage": "https://github.com/LuudJacobs/better-bem#readme",
   "devDependencies": {
-    "@babel/cli": "^7.10.1",
-    "@babel/core": "^7.10.2",
-    "@babel/preset-env": "^7.10.2"
+    "@babel/cli": "^8.0.4",
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2"
   },
   "babel": {
     "presets": [
