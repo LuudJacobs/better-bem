@@ -17,10 +17,11 @@ const GLUE_PROP = '-';
  *
  * @param {string|array|Object} input               classnames which should be cleaned
  * @param {Boolean}             useKeyValuePairs    if true handle prop-value mod classnames
+ * @param {string}              keyValueGlue        glue for `--{prop}-{value}` modifiers
  *
  * @return {array} clean array clean classnames
  */
-const cleanClassNamesArray = (input = [], useKeyValuePairs = false, keyValueGlue) => (
+const cleanClassNamesArray = (input = [], useKeyValuePairs = false, keyValueGlue = GLUE_PROP) => (
     // make sure input is an array
     flatten([input])
         // reduce into new array with classname strings
