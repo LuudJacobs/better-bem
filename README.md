@@ -223,6 +223,8 @@ console.log(customGlue.cn); // "element_child element_child-color--blue"
 
 better-BEM uses [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/LuudJacobs/better-bem/tags).
 
+See [CHANGELOG.md](https://github.com/LuudJacobs/better-bem/blob/master/CHANGELOG.md) for notable changes.
+
 
 ## Authors
 
@@ -231,8 +233,7 @@ better-BEM uses [SemVer](http://semver.org/) for versioning. For the versions av
 
 ## License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details
-
+This project is licensed under the ISC License - see the [LICENSE](https://github.com/LuudJacobs/better-bem/blob/master/LICENSE) file for details
 
 ## Related
 
