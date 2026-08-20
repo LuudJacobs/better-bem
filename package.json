@@ -6,7 +6,10 @@
   "module": "src/better-bem.js",
   "files": [
     "src",
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "echo \"lol 🤣\" && exit 1",
